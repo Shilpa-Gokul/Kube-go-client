@@ -1,42 +1,31 @@
-/*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-
-*/
 package cmd
 
 import (
-	"fmt"
 
 	"github.com/spf13/cobra"
 	"github.com/Shilpa-Gokul/Kube-go-client/my-cli/deploy"
 )
 
-// deployNginxCmd represents the deployNginx command
+// deployNginxCmd represents the details of deployNginx Command
 var deployNginxCmd = &cobra.Command{
 	Use:   "deployNginx",
-	Short: "Deploy Nginx image in Kuebernetes",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Deploy Nginx image in Kubernetes",
+	Long: `Deploy Nginx image with the provided scale count and version.
+	If no scale and version arguments are provided, default values will be considered.
+	Default Values:
+	Scale- 1
+	Version- 1.12`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("deployNginx called")
-		deploy.DeployImage()
+		scale,_ := cmd.Flags().GetInt("scale")
+		version,_ := cmd.Flags().GetString("version") 
+		deploy.DeployImage(scale, version)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(deployNginxCmd)
+	// Add the flags required for deployNginx command
+	deployNginxCmd.PersistentFlags().Int("scale", 1, "Count of the replica set")
+	deployNginxCmd.PersistentFlags().String("version", "1.12", "Version of the nginx image to be deployed")
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// deployNginxCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// deployNginxCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

@@ -1,11 +1,9 @@
 package deploy
 
 import (
-	"bufio"
 	"context"
 	"flag"
 	"fmt"
-	"os"
 	"path/filepath"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -14,7 +12,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
-	"k8s.io/client-go/util/retry"
 	//
 	// Uncomment to load all auth plugins
 	// _ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -26,19 +23,13 @@ import (
 	// _ "k8s.io/client-go/plugin/pkg/client/auth/openstack"
 )
 
-func DeployImage() error{
-	fmt.Println("In DeployImage")
-	var kubeconfig,version *string
-	var scale *int
+func DeployImage(scale int ,version string) error{
+	var kubeconfig *string
+	var nginxVer string
 	if home := homedir.HomeDir(); home != "" {
 		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
-	} else {
-		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
 	}
-	scale = flag.Int("scale",0 ,"Count of the pod replicas")
-	version = flag.String("version","","deployment version")
 	flag.Parse()
-	fmt.Println(*kubeconfig,*scale,*version)
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
 	if err != nil {
 		return err
@@ -49,18 +40,16 @@ func DeployImage() error{
 	}
 
 	deploymentsClient := clientset.AppsV1().Deployments(apiv1.NamespaceDefault)
-	nginxVer := "nginx:1.12"
-	fmt.Println(version)
-	if *version != "" {
-		nginxVer = "nginx:"+*version
+	if version != "" {
+		nginxVer = "nginx:"+version
 	}
-	fmt.Println(nginxVer)
+	fmt.Println(scale,nginxVer)
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "demo-deployment",
+			Name: "nginx-test",
 		},
 		Spec: appsv1.DeploymentSpec{
-			Replicas: int32Ptr(int32(*scale)),
+			Replicas: int32Ptr(int32(scale)),
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
 					"app": "demo",
@@ -95,10 +84,11 @@ func DeployImage() error{
 	fmt.Println("Creating deployment...")
 	result, err := deploymentsClient.Create(context.TODO(), deployment, metav1.CreateOptions{})
 	if err != nil {
+		fmt.Printf("err %s", err)
 		return err
 	}
 	fmt.Printf("Created deployment %q.\n", result.GetObjectMeta().GetName())
-
+ return nil
 }
 
 func int32Ptr(i int32) *int32 { return &i }

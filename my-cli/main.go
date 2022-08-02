@@ -1,10 +1,6 @@
-/*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-
-*/
 package main
 
-import "my-cli/cmd"
+import "github.com/Shilpa-Gokul/Kube-go-client/my-cli/cmd"
 
 func main() {
 	cmd.Execute()
